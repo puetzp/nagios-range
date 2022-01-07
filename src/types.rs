@@ -142,6 +142,8 @@ impl NagiosRange {
     }
 }
 
+/// The start point of a Nagios range which may specify either
+/// a number (positive or negative) or negative infinity.
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum Start {
     Value(i32),
@@ -149,6 +151,17 @@ pub enum Start {
 }
 
 impl Start {
+    /// Returns a `i32` or None if the start point
+    /// specifies negative infinity.
+    ///
+    /// ```rust
+    /// use nagios_range::NagiosRange;
+    ///
+    /// let start = NagiosRange::from("~:50").unwrap().start();
+    /// assert_eq!(start.inner(), None);
+    ///
+    /// let start = NagiosRange::from("@-20:50").unwrap().start();
+    /// assert_eq!(start.inner(), Some(-20));
     pub fn inner(&self) -> Option<i32> {
         match self {
             Self::Value(v) => Some(*v),
@@ -156,6 +169,14 @@ impl Start {
         }
     }
 
+    /// Returns `true` if the start point specifies
+    /// negative infinity.
+    ///
+    /// ```rust
+    /// use nagios_range::NagiosRange;
+    ///
+    /// let start = NagiosRange::from("~:50").unwrap().start();
+    /// assert!(start.is_neg_inf());
     pub fn is_neg_inf(&self) -> bool {
         match self {
             Self::Value(_) => false,
@@ -164,6 +185,8 @@ impl Start {
     }
 }
 
+/// The end point of a Nagios range which may specify either
+/// a number (positive or negative) or positive infinity.
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum End {
     Value(i32),
