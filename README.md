@@ -1,6 +1,6 @@
 # nagios-range
 
-This is a very small Rust library that simply parses a Nagios range as defined in the Nagios development guidelines [https://nagios-plugins.org/doc/guidelines.html#THRESHOLDFORMAT].
+This is a very small Rust library that simply parses a Nagios range as defined in the [Nagios development guidelines](https://nagios-plugins.org/doc/guidelines.html#THRESHOLDFORMAT).
 
 ## Example
 
