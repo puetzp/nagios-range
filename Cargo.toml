@@ -7,5 +7,5 @@ repository = "https://github.com/puetzp/nagios-range"
 documentation = "https://docs.rs/nagios-range"
 readme = "README.md"
 license = "MIT"
-description = "Provides a single type to parse and operate on Nagios ranges"
+description = "Provides types to parse and operate on Nagios ranges"
 keywords = ["nagios", "parsing"]
