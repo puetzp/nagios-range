@@ -151,7 +151,7 @@ pub enum Start {
 }
 
 impl Start {
-    /// Returns a `i32` or None if the start point
+    /// Returns a `i32` or `None` if the start point
     /// specifies negative infinity.
     ///
     /// ```rust
@@ -194,6 +194,17 @@ pub enum End {
 }
 
 impl End {
+    /// Returns a `i32` or `None` if the end point
+    /// specifies positive infinity.
+    ///
+    /// ```rust
+    /// use nagios_range::NagiosRange;
+    ///
+    /// let end = NagiosRange::from("10:").unwrap().end();
+    /// assert_eq!(end.inner(), None);
+    ///
+    /// let end = NagiosRange::from("@-50").unwrap().end();
+    /// assert_eq!(end.inner(), Some(-50));
     pub fn inner(&self) -> Option<i32> {
         match self {
             Self::Value(v) => Some(*v),
@@ -201,6 +212,14 @@ impl End {
         }
     }
 
+    /// Returns `true` if the end point specifies
+    /// positive infinity.
+    ///
+    /// ```rust
+    /// use nagios_range::NagiosRange;
+    ///
+    /// let end = NagiosRange::from("50:").unwrap().end();
+    /// assert!(end.is_pos_inf());
     pub fn is_pos_inf(&self) -> bool {
         match self {
             Self::Value(_) => false,
