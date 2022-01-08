@@ -1,10 +1,11 @@
 use crate::error::Error;
 
 /// A parsed Nagios range built from a literal string.
-#[derive(Debug, PartialEq, Eq)]
-pub enum NagiosRange {
-    Inside(Start, End),
-    Outside(Start, End),
+#[derive(Debug)]
+pub struct NagiosRange {
+    pub alert_type: AlertType,
+    pub start: f64,
+    pub end: f64,
 }
 
 impl NagiosRange {
@@ -24,244 +25,67 @@ impl NagiosRange {
         if input.starts_with('@') {
             let rem = &input[1..];
             let (start, end) = parse_range(rem)?;
-            let inside_range = NagiosRange::Inside(start, end);
+            let inside_range = NagiosRange {
+                alert_type: AlertType::Inside,
+                start,
+                end,
+            };
             Ok(inside_range)
         } else {
             let (start, end) = parse_range(input)?;
-            let outside_range = NagiosRange::Outside(start, end);
+            let outside_range = NagiosRange {
+                alert_type: AlertType::Outside,
+                start,
+                end,
+            };
             Ok(outside_range)
         }
     }
 
-    /// Returns the `Start` component of a NagiosRange.
-    ///
-    /// ```rust
-    /// use nagios_range::{NagiosRange, Start};
-    ///
-    /// let start = NagiosRange::from("@~:10").unwrap().start();
-    /// assert_eq!(start, Start::NegInf);
-    /// ```
-    pub fn start(&self) -> Start {
-        match self {
-            NagiosRange::Inside(s, _) => *s,
-            NagiosRange::Outside(s, _) => *s,
-        }
+    pub fn alerts_inside_range(&self) -> bool {
+        self.alert_type == AlertType::Inside
     }
 
-    /// Returns the `End` component of a NagiosRange.
-    ///
-    /// ```rust
-    /// use nagios_range::{NagiosRange, End};
-    ///
-    /// let end = NagiosRange::from("@10").unwrap().end();
-    /// assert_eq!(end, End::Value(10));
-    /// ```
-    pub fn end(&self) -> End {
-        match self {
-            NagiosRange::Inside(_, e) => *e,
-            NagiosRange::Outside(_, e) => *e,
-        }
-    }
-
-    /// Returns `true` when the `NagiosRange` is supposed to
-    /// check for a metric inside of its range.
-    ///
-    /// ```rust
-    /// use nagios_range::NagiosRange;
-    ///
-    /// let range = NagiosRange::from("@10").unwrap();
-    /// assert!(range.is_inside());
-    ///
-    /// let range = NagiosRange::from("10:20").unwrap();
-    /// assert!(!range.is_inside());
-    /// ```
-    pub fn is_inside(&self) -> bool {
-        match self {
-            NagiosRange::Inside(_, _) => true,
-            NagiosRange::Outside(_, _) => false,
-        }
-    }
-
-    /// Returns `true` when the `NagiosRange` is supposed to
-    /// check for a metric outside of its range.
-    ///
-    /// ```rust
-    /// use nagios_range::NagiosRange;
-    ///
-    /// let range = NagiosRange::from("~:10").unwrap();
-    /// assert!(range.is_outside());
-    ///
-    /// let range = NagiosRange::from("@20").unwrap();
-    /// assert!(!range.is_outside());
-    /// ```
-    pub fn is_outside(&self) -> bool {
-        match self {
-            NagiosRange::Inside(_, _) => false,
-            NagiosRange::Outside(_, _) => true,
-        }
-    }
-
-    /// Returns a tuple containing the `Start` and `End`
-    /// points or `None` if the range is not of type
-    /// `NagiosRange::Inside`.
-    ///
-    /// ```rust
-    /// use nagios_range::NagiosRange;
-    ///
-    /// let range = NagiosRange::from("@10").unwrap().as_inside();
-    /// assert!(range.is_some());
-    ///
-    /// let range = NagiosRange::from("~:20").unwrap().as_inside();
-    /// assert!(range.is_none());
-    /// ```
-    pub fn as_inside(&self) -> Option<(Start, End)> {
-        match self {
-            NagiosRange::Inside(s, e) => Some((*s, *e)),
-            NagiosRange::Outside(_, _) => None,
-        }
-    }
-
-    /// Returns a tuple containing the `Start` and `End`
-    /// points or `None` if the range is not of type
-    /// `NagiosRange::Outside`.
-    ///
-    /// ```rust
-    /// use nagios_range::NagiosRange;
-    ///
-    /// let range = NagiosRange::from("~:50").unwrap().as_outside();
-    /// assert!(range.is_some());
-    ///
-    /// let range = NagiosRange::from("@50").unwrap().as_outside();
-    /// assert!(range.is_none());
-    /// ```
-    pub fn as_outside(&self) -> Option<(Start, End)> {
-        match self {
-            NagiosRange::Inside(_, _) => None,
-            NagiosRange::Outside(s, e) => Some((*s, *e)),
-        }
+    pub fn alerts_outside_range(&self) -> bool {
+        self.alert_type == AlertType::Outside
     }
 }
 
 /// The start point of a Nagios range which may specify either
 /// a number (positive or negative) or negative infinity.
-#[derive(Debug, PartialEq, Eq, Copy, Clone)]
-pub enum Start {
-    Value(i32),
-    NegInf,
+#[derive(Debug, PartialEq)]
+pub enum AlertType {
+    Inside,
+    Outside,
 }
 
-impl Start {
-    /// Returns a `i32` or `None` if the start point
-    /// specifies negative infinity.
-    ///
-    /// ```rust
-    /// use nagios_range::NagiosRange;
-    ///
-    /// let start = NagiosRange::from("~:50").unwrap().start();
-    /// assert_eq!(start.inner(), None);
-    ///
-    /// let start = NagiosRange::from("@-20:50").unwrap().start();
-    /// assert_eq!(start.inner(), Some(-20));
-    pub fn inner(&self) -> Option<i32> {
-        match self {
-            Self::Value(v) => Some(*v),
-            Self::NegInf => None,
-        }
-    }
-
-    /// Returns `true` if the start point specifies
-    /// negative infinity.
-    ///
-    /// ```rust
-    /// use nagios_range::NagiosRange;
-    ///
-    /// let start = NagiosRange::from("~:50").unwrap().start();
-    /// assert!(start.is_neg_inf());
-    pub fn is_neg_inf(&self) -> bool {
-        match self {
-            Self::Value(_) => false,
-            Self::NegInf => true,
-        }
-    }
-}
-
-/// The end point of a Nagios range which may specify either
-/// a number (positive or negative) or positive infinity.
-#[derive(Debug, PartialEq, Eq, Copy, Clone)]
-pub enum End {
-    Value(i32),
-    PosInf,
-}
-
-impl End {
-    /// Returns a `i32` or `None` if the end point
-    /// specifies positive infinity.
-    ///
-    /// ```rust
-    /// use nagios_range::NagiosRange;
-    ///
-    /// let end = NagiosRange::from("10:").unwrap().end();
-    /// assert_eq!(end.inner(), None);
-    ///
-    /// let end = NagiosRange::from("@-50").unwrap().end();
-    /// assert_eq!(end.inner(), Some(-50));
-    pub fn inner(&self) -> Option<i32> {
-        match self {
-            Self::Value(v) => Some(*v),
-            Self::PosInf => None,
-        }
-    }
-
-    /// Returns `true` if the end point specifies
-    /// positive infinity.
-    ///
-    /// ```rust
-    /// use nagios_range::NagiosRange;
-    ///
-    /// let end = NagiosRange::from("50:").unwrap().end();
-    /// assert!(end.is_pos_inf());
-    pub fn is_pos_inf(&self) -> bool {
-        match self {
-            Self::Value(_) => false,
-            Self::PosInf => true,
-        }
-    }
-}
-
-fn parse_range(range: &str) -> Result<(Start, End), Error> {
+fn parse_range(range: &str) -> Result<(f64, f64), Error> {
     match range.split_once(':') {
         Some(parts) => {
             let start = if parts.0 == "~" {
-                Start::NegInf
+                f64::NEG_INFINITY
             } else if parts.0.is_empty() {
-                Start::Value(0)
+                0.0
             } else {
-                let num = i32::from_str_radix(parts.0, 10).map_err(Error::ParseStartPoint)?;
-                Start::Value(num)
+                parts.0.parse().map_err(Error::ParseStartPoint)?
             };
 
             let end = if parts.1.is_empty() {
-                End::PosInf
+                f64::INFINITY
             } else {
-                let num = i32::from_str_radix(parts.1, 10).map_err(Error::ParseEndPoint)?;
+                let num: f64 = parts.1.parse().map_err(Error::ParseEndPoint)?;
 
-                match start {
-                    Start::Value(v) => {
-                        if v > num {
-                            return Err(Error::StartGreaterThanEnd);
-                        }
-                    }
-                    _ => {}
+                if start > num {
+                    return Err(Error::StartGreaterThanEnd);
                 }
-                End::Value(num)
+                num
             };
 
             Ok((start, end))
         }
         None => {
-            let start = Start::Value(0);
-            let num = i32::from_str_radix(range, 10).map_err(Error::ParseEndPoint)?;
-            let end = End::Value(num);
+            let start = 0.0;
+            let end: f64 = range.parse().map_err(Error::ParseEndPoint)?;
             Ok((start, end))
         }
     }

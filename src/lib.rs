@@ -61,6 +61,5 @@
 pub mod error;
 pub mod types;
 pub use self::error::Error;
-pub use self::types::End;
+pub use self::types::AlertType;
 pub use self::types::NagiosRange;
-pub use self::types::Start;

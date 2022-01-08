@@ -8,8 +8,8 @@ use std::fmt;
 pub enum Error {
     EmptyRange,
     StartGreaterThanEnd,
-    ParseStartPoint(std::num::ParseIntError),
-    ParseEndPoint(std::num::ParseIntError),
+    ParseStartPoint(std::num::ParseFloatError),
+    ParseEndPoint(std::num::ParseFloatError),
 }
 
 impl fmt::Display for Error {
@@ -20,18 +20,10 @@ impl fmt::Display for Error {
                 write!(f, "the start point must be lesser than the end point")
             }
             Self::ParseStartPoint(e) => {
-                write!(
-                    f,
-                    "the start point could not be parsed as signed integer: {}",
-                    e
-                )
+                write!(f, "the start point could not be parsed as float: {}", e)
             }
             Self::ParseEndPoint(e) => {
-                write!(
-                    f,
-                    "the end point could not be parsed as signed integer: {}",
-                    e
-                )
+                write!(f, "the end point could not be parsed as float: {}", e)
             }
         }
     }
