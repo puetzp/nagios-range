@@ -175,11 +175,9 @@ impl NagiosRange {
     ///     // When it is an "inside" range...
     ///     let range = NagiosRange::from("@10:20")?;
     ///     assert!(range.check(15.0));
-    ///     assert!(!range.check(-10.0));
     ///
     ///     // ...inverted behaviour when it is an "outside" range...
     ///     let range = NagiosRange::from("10:20")?;
-    ///     assert!(!range.check(15.0));
     ///     assert!(range.check(30.0));
     ///     Ok(())
     /// }
