@@ -10,12 +10,8 @@ use nagios_range::NagiosRange;
 fn main() {
     let range = NagiosRange::from("@~:10");
     assert!(range.is_ok());
-    assert!(range.is_inside());
-
-    let start = range.start();
-    assert!(start.is_neg_inf());
-
-    let end = range.end().inner();
-    assert_eq!(end, Some(10));
+    assert!(range.checks_inside());
+    assert!(range.start_is_infinite());
+    assert!(range.check(5.0));
 }
 ```
