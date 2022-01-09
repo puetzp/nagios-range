@@ -5,13 +5,13 @@ This is a very small Rust library that simply parses a Nagios range as defined i
 ## Example
 
 ```rust
-use nagios_range::NagiosRange;
+use nagios_range::{NagiosRange, Error};
 
-fn main() {
+fn main() -> Result<(), Error>{
     let range = NagiosRange::from("@~:10");
     assert!(range.is_ok());
-    assert!(range.checks_inside());
-    assert!(range.start_is_infinite());
-    assert!(range.check(5.0));
+    assert!(range?.checks_inside());
+    assert!(range?.start_is_infinite());
+    assert!(range?.check(5.0));
 }
 ```
