@@ -7,7 +7,7 @@ use crate::error::Error;
 /// However it differs slightly in how it is used. It contains some
 /// logic to determine if an alert should be raised when it is
 /// compared to some value (either when inside or outside of the range).
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub struct NagiosRange {
     pub(crate) check_type: CheckType,
     pub(crate) start: f64,
@@ -257,7 +257,7 @@ impl NagiosRange {
 
 /// This enum indicates if [NagiosRange::check()] should
 /// check if a value lies inside or outside of the range.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum CheckType {
     Inside,
     Outside,
