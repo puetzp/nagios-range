@@ -1,4 +1,5 @@
 use crate::error::Error;
+use std::fmt;
 
 /// A parsed Nagios range built from a literal string.
 /// A Nagios range works similar to [std::ops::RangeInclusive]
@@ -252,6 +253,15 @@ impl NagiosRange {
     /// ```
     pub fn into_inner(self) -> (CheckType, f64, f64) {
         (self.check_type, self.start, self.end)
+    }
+}
+
+impl fmt::Display for NagiosRange {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.check_type {
+            CheckType::Inside => write!(f, "@{}:{}", self.start, self.end),
+            CheckType::Outside => write!(f, "@{}:{}", self.start, self.end),
+        }
     }
 }
 
