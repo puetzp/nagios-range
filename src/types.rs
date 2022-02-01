@@ -260,7 +260,7 @@ impl fmt::Display for NagiosRange {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.check_type {
             CheckType::Inside => write!(f, "@{}:{}", self.start, self.end),
-            CheckType::Outside => write!(f, "@{}:{}", self.start, self.end),
+            CheckType::Outside => write!(f, "{}:{}", self.start, self.end),
         }
     }
 }
