@@ -258,9 +258,19 @@ impl NagiosRange {
 
 impl fmt::Display for NagiosRange {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let start = if self.start.is_infinite() {
+            "~".to_string()
+        } else {
+            self.start.to_string()
+        };
+        let end = if self.end.is_infinite() {
+            "~".to_string()
+        } else {
+            self.end.to_string()
+        };
         match self.check_type {
-            CheckType::Inside => write!(f, "@{}:{}", self.start, self.end),
-            CheckType::Outside => write!(f, "{}:{}", self.start, self.end),
+            CheckType::Inside => write!(f, "@{}:{}", start, end),
+            CheckType::Outside => write!(f, "{}:{}", start, end),
         }
     }
 }
@@ -406,5 +416,33 @@ mod tests {
         let result = NagiosRange::from("");
         let expect = Error::EmptyRange;
         assert_eq!(result, Err(expect));
+    }
+
+    #[test]
+    fn display_range_1() {
+        let range = NagiosRange::from("@10:20").unwrap();
+        let result = "@10:20".to_string();
+        assert_eq!(range.to_string(), result);
+    }
+
+    #[test]
+    fn display_range_2() {
+        let range = NagiosRange::from("@10:").unwrap();
+        let result = "@10:~".to_string();
+        assert_eq!(range.to_string(), result);
+    }
+
+    #[test]
+    fn display_range_3() {
+        let range = NagiosRange::from("10").unwrap();
+        let result = "0:10".to_string();
+        assert_eq!(range.to_string(), result);
+    }
+
+    #[test]
+    fn display_range_4() {
+        let range = NagiosRange::from("~:10").unwrap();
+        let result = "~:10".to_string();
+        assert_eq!(range.to_string(), result);
     }
 }
