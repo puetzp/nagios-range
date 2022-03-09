@@ -32,24 +32,20 @@ impl NagiosRange {
             return Err(Error::EmptyRange);
         }
 
-        if input.starts_with('@') {
-            let rem = &input[1..];
-            let (start, end) = parse_range(rem)?;
-            let inside_range = NagiosRange {
-                check_type: CheckType::Inside,
-                start,
-                end,
-            };
-            Ok(inside_range)
-        } else {
-            let (start, end) = parse_range(input)?;
-            let outside_range = NagiosRange {
-                check_type: CheckType::Outside,
-                start,
-                end,
-            };
-            Ok(outside_range)
-        }
+        let (check_type, input) = match input.strip_prefix('@') {
+            Some(i) => (CheckType::Inside, i),
+            None => (CheckType::Outside, input),
+        };
+
+        let (start, end) = parse_range(input)?;
+
+        let range = NagiosRange {
+            check_type,
+            start,
+            end,
+        };
+
+        Ok(range)
     }
 
     /// Creates a [NagiosRange] from a [CheckType], lower and
@@ -159,11 +155,7 @@ impl NagiosRange {
     /// }
     /// ```
     pub fn contains(&self, item: f64) -> bool {
-        if item >= self.start && item <= self.end {
-            true
-        } else {
-            false
-        }
+        item >= self.start && item <= self.end
     }
 
     /// Returns `true` if a value is either inside or outside
@@ -185,20 +177,8 @@ impl NagiosRange {
     /// ```
     pub fn check(&self, item: f64) -> bool {
         match self.check_type {
-            CheckType::Inside => {
-                if item >= self.start && item <= self.end {
-                    true
-                } else {
-                    false
-                }
-            }
-            CheckType::Outside => {
-                if item < self.start || item > self.end {
-                    true
-                } else {
-                    false
-                }
-            }
+            CheckType::Inside => item >= self.start && item <= self.end,
+            CheckType::Outside => item < self.start || item > self.end,
         }
     }
 
